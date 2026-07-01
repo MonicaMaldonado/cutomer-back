@@ -64,7 +64,7 @@ jobs:
             git config --global user.email "EMAIL-OF-WORKFLOW@USER"
             git config --global user.name "NAME-OF-WORKFLOW"
             # Using -m "message" on merge command is mandatory here in order to avoid open an editor for the commit message
-            git merge --no-ff -verbose origin/${{ github.event.pull_request.head.ref }} -m "Merge pull request #${{ github.event.number }}"
+            git merge --no-ff --verbose origin/${{ github.event.pull_request.head.ref }} -m "Merge pull request #${{ github.event.number }}"
       
       ################3###################################################################################
       # 3. Push the changes to the remote repository after the merge
