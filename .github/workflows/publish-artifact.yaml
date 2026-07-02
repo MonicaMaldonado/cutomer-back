@@ -7,7 +7,7 @@ jobs:
     download-artifact-job:
         runs-on: ubuntu-latest
         env:
-            ARTIFACT_NAME: 'ada_qartz-0.0.1-SNAPSHOT.jar'
+            ARTIFACT_NAME: 'customer-0.0.1-SNAPSHOT.jar'
         permissions:
             contents: write
             pull-requests: write
@@ -65,3 +65,6 @@ jobs:
               with:
                 name: artifactjar
                 path: ${{ github.workspace }}/target/${{ env.ARTIFACT_NAME }}
+
+            # ###############################################################################################
+
