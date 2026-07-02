@@ -75,3 +75,15 @@ jobs:
           with:
             github_token: ${{ secrets.GITHUB_TOKEN }}
             branch: ${{ github.base_ref }}  #La rama base es la rama de destino del pull request, en este caso develop
+
+      ################3###################################################################################
+      # 4. Push the changes to the remote repository after the merge
+      # #################################################################################################
+        - name: Trigger deploy artifact
+          if: success()
+          uses: peter-evans/repository-dispatch@v2
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            repository: ${{ github.repository }}
+            event-type: publish-artifact-event
+            client-payload: '{"base_branch": "${{ github.base_ref }}"}'
