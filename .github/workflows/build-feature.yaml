@@ -5,35 +5,85 @@ on:
       - develop
     types: [opened, reopened]  
 jobs:
-    build-feature:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-              with:
-                ref: ${{ github.event.pull_request.head.ref }}
+  build-feature:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+          with:
+            ref: ${{ github.event.pull_request.head.ref }}
 
-            - name: pull and checkout from git repository
-              run: |
+        - name: pull and checkout from git repository
+          run: |
                 echo "Pulling and checking out the feature branch..."
     
-            - name: Set up JDK 17
-              uses: actions/setup-java@v3
-              with:
-                java-version: '17'
-                distribution: 'temurin'
+        - name: Set up JDK 17
+          uses: actions/setup-java@v3
+          with:
+            java-version: '17'
+            distribution: 'temurin'
 
-            - name: Cache Maven dependency
-              uses: actions/cache@v3
-              with:
-                path: ~/.m2/repository
-                key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-                restore-keys: |
-                  ${{ runner.os }}-maven-
+        - name: Cache Maven dependency
+          uses: actions/cache@v3
+          with:
+            path: ~/.m2/repository
+            key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+            restore-keys: |
+              ${{ runner.os }}-maven-
 
-            - name: Build with Maven
-              run: |
-                mvn clean test package
-                echo "Build with maven"
+        - name: Build with Maven
+          run: |
+           mvn clean test package
+           echo "Build with maven"
+                
+                
+  merge-feature-into-develop:
+    runs-on: ubuntu-latest
+    needs: build-feature
+    if: ${{ success() }}
+    #[For a specific job you can use jobs.<job_id>.permissions to modifiy the default permissions granted to the GITHUB_TOKEN. For example, you can set read-only permissions for the contents of the repository. ]
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # ###############################################################################################
+      # 1. Download source code
+      # Only a single commit is fetched by default. To fetch all history for all branches and tags, set fetch-depth to 0.x|
+      # ###############################################################################################
+        - uses: actions/checkout@v3
+          with: 
+            #Download the  code from the destination branch (develop) to the runner
+            ref: ${{ github.base_ref }}  #La rama base es la rama de destino del pull request, en este caso develop
+            fetch-depth: 0  # Fetch all history for all branches and tags 
 
-        
-            
+      # ###############################################################################################   
+      # 2. Merge the developer branch
+      # ###############################################################################################
+        - name: Merge to development branch
+          if: ${{ success() }}
+          run: |
+            git config --global user.email "EMAIL-OF-WORKFLOW@USER"
+            git config --global user.name "NAME-OF-WORKFLOW"
+            # Using -m "message" on merge command is mandatory here in order to avoid open an editor for the commit message
+            git merge --no-ff --verbose origin/${{ github.event.pull_request.head.ref }} -m "Merge pull request #${{ github.event.number }}"
+      
+      ################3###################################################################################
+      # 3. Push the changes to the remote repository after the merge
+      # #################################################################################################
+        - name: Push changes after merge
+          if: ${{ success() }}
+          uses: ad-m/github-push-action@master
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            branch: ${{ github.base_ref }}  #La rama base es la rama de destino del pull request, en este caso develop
+
+      ################3###################################################################################
+      # 4. Push the changes to the remote repository after the merge
+      # #################################################################################################
+        - name: Trigger deploy artifact
+          if: success()
+          uses: peter-evans/repository-dispatch@v2
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            repository: ${{ github.repository }}
+            event-type: publish-artifact-event
+            client-payload: '{"base_branch": "${{ github.base_ref }}"}' 
