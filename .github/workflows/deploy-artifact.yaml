@@ -132,7 +132,7 @@ jobs:
                 build-args:
                     JAR_FILE=${{ github.event.client_payload.artifact_name }}
                     DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-                path: true
+                push: true
                 tags : ghcr.io/${{ github.repository_owner}}/cutomer-back:${{ github.sha }} # The image ful name, include repository, user, image name and tag 
     
 
