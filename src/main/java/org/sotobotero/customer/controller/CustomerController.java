@@ -5,34 +5,43 @@ import org.sotobotero.customer.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Optional;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import java.util.List;
-import java.util.Optional;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 @RequestMapping("/api/v1/customer")
 @Tag(name = "customer API", description = "customer API")
 @CrossOrigin(origins = "*")
 public class CustomerController {
-    // generate all methos for a rest appi with spring boot for a customer entity
+    
+    public CustomerController() {
+        super();
+    }
+    
     @Autowired
-    private CustomerRepository prsRepository;
+    private CustomerRepository customerRepository; // Cambiado de prsRepository a customerRepository
+
+    @Value("${db.password}")
+    private String password;
+
+    @Operation(summary = "Test property")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the property"),
+            @ApiResponse(responseCode = "404", description = "Property not found"),
+    })
+    @GetMapping("/testproperty")
+    public ResponseEntity<String> getTestValue() {    
+        return new ResponseEntity<>(password, HttpStatus.OK);
+    }
 
     @Operation(summary = "Get all customers")
     @ApiResponses(value = {
@@ -40,8 +49,8 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Not found the customers"),
     })
     @GetMapping
-    public ResponseEntity<List<Customer>> getAllcustomers() {
-        List<Customer> customers = prsRepository.findAll();
+    public ResponseEntity<List<Customer>> getAllCustomers() { // Corregido camelCase
+        List<Customer> customers = customerRepository.findAll();
         return new ResponseEntity<>(customers, HttpStatus.OK);
     }
 
@@ -51,104 +60,107 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Not found the customer"),
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getcustomerById(@PathVariable("id") Long id) {
-        Optional<Customer> customer = prsRepository.findById(id.toString());
-        if (customer.isPresent()) {
-            return new ResponseEntity<>(customer.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Customer> getCustomerById(@PathVariable("id") Long id) {
+    // Corregido: Convertimos el Long 'id' a String usando String.valueOf()
+    Optional<Customer> customer = customerRepository.findById(String.valueOf(id)); 
+    
+    if (customer.isPresent()) {
+        return new ResponseEntity<>(customer.get(), HttpStatus.OK);
+    } else {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+}
 
     @Operation(summary = "Create a customer")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Create the customer"),
-            @ApiResponse(responseCode = "404", description = "Not create the customer"),
+            @ApiResponse(responseCode = "201", description = "Created the customer"), // El código HTTP correcto para creación es 201 (Created)
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
     })  
-
-    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE,produces =  MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Customer> createcustomer(@RequestBody Customer customer) {
-        Customer newcustomer = prsRepository.save(customer);
-        return new ResponseEntity<>(newcustomer, HttpStatus.CREATED);
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) { // Corregido camelCase
+        Customer newCustomer = customerRepository.save(customer);
+        return new ResponseEntity<>(newCustomer, HttpStatus.CREATED);
     }
-//generate update method for org.sotobotero.customer.entities.Customer entity
+    
+
     @Operation(summary = "Update a customer")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Update the customer"),
-            @ApiResponse(responseCode = "404", description = "Not update the customer"),
+            @ApiResponse(responseCode = "404", description = "Not found the customer to update"),
     })
-  /*
-take care with swagger code generator if you does not indicate here @RequestBody anotation, 
-the generate code no take body payload and yo could get this exception "Required request body is missing: 
-public org.springframework.http.ResponseEntity<org.sotobotero.customer.entities.Customer> 
-org.sotobotero.customer.controller.CustomerController.createcustomer(org.sotobotero.customer.entities.Customer)"
-*/
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces =  MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Customer> updatecustomer(@RequestBody Customer customer) {
-        Optional<Customer> optionalcustomer = prsRepository.findById(customer.getId().toString());
-        if (optionalcustomer.isPresent()) {
-            Customer newcustomer = optionalcustomer.get();
-            newcustomer.setName(customer.getName());
-            newcustomer.setEmail(customer.getEmail());
-            newcustomer.setPhone(customer.getPhone());
-            newcustomer.setAddress(customer.getAddress());
-            newcustomer.setCity(customer.getCity());
-            newcustomer.setState(customer.getState());
-            newcustomer.setCountry(customer.getCountry());
-            newcustomer.setZip(customer.getZip());
-            newcustomer.setCompany(customer.getCompany());
-            newcustomer.setPosition(customer.getPosition());
-            newcustomer.setWebsite(customer.getWebsite());
-            newcustomer.setTwitter(customer.getTwitter());
-            newcustomer.setFacebook(customer.getFacebook());
-            newcustomer.setLinkedin(customer.getLinkedin());
-            newcustomer.setGithub(customer.getGithub());
-            newcustomer.setInstagram(customer.getInstagram());
-            newcustomer.setYoutube(customer.getYoutube());
-            newcustomer.setTiktok(customer.getTiktok());
-            newcustomer.setSnapchat(customer.getSnapchat());
-            newcustomer.setTwitch(customer.getTwitch());
-            newcustomer.setOther(customer.getOther());
-            newcustomer.setNotes(customer.getNotes());
-            newcustomer.setAge(customer.getAge());
-            newcustomer = prsRepository.save(newcustomer);
-            return new ResponseEntity<>(newcustomer, HttpStatus.OK);
+    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Customer> updateCustomer(@RequestBody Customer customer) { // Corregido camelCase
+        Optional<Customer> optionalCustomer = customerRepository.findById(String.valueOf(customer.getId()));// Eliminado .toString()
+        if (optionalCustomer.isPresent()) {
+            Customer existingCustomer = optionalCustomer.get();
+            
+            // Mapeando campos actualizados
+            existingCustomer.setName(customer.getName());
+            existingCustomer.setEmail(customer.getEmail());
+            existingCustomer.setPhone(customer.getPhone());
+            existingCustomer.setAddress(customer.getAddress());
+            existingCustomer.setCity(customer.getCity());
+            existingCustomer.setState(customer.getState());
+            existingCustomer.setCountry(customer.getCountry());
+            existingCustomer.setZip(customer.getZip());
+            existingCustomer.setCompany(customer.getCompany());
+            existingCustomer.setPosition(customer.getPosition());
+            existingCustomer.setWebsite(customer.getWebsite());
+            existingCustomer.setTwitter(customer.getTwitter());
+            existingCustomer.setFacebook(customer.getFacebook());
+            existingCustomer.setLinkedin(customer.getLinkedin());
+            existingCustomer.setGithub(customer.getGithub());
+            existingCustomer.setInstagram(customer.getInstagram());
+            existingCustomer.setYoutube(customer.getYoutube());
+            existingCustomer.setTiktok(customer.getTiktok());
+            existingCustomer.setSnapchat(customer.getSnapchat());
+            existingCustomer.setTwitch(customer.getTwitch());
+            existingCustomer.setOther(customer.getOther());
+            existingCustomer.setNotes(customer.getNotes());
+            existingCustomer.setAge(customer.getAge());
+            
+            Customer updatedCustomer = customerRepository.save(existingCustomer);
+            return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-//generate update method for name attribute of org.sotobotero.customer.entities.Customer entity
+
     @Operation(summary = "Update a customer name")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Update the customer name"),
             @ApiResponse(responseCode = "404", description = "Not update the customer name"),
     })
-  
-
-
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updatecustomerName(String name, @PathVariable("id") Long id) {
-        Optional<Customer> optionalcustomer = prsRepository.findById(id.toString());
-        if (optionalcustomer.isPresent()) {
-            Customer newcustomer = optionalcustomer.get();
-            newcustomer.setName(name);
-            newcustomer = prsRepository.save(newcustomer);
-            return new ResponseEntity<>(newcustomer, HttpStatus.OK);
+    public ResponseEntity<?> updateCustomerName(
+            @RequestParam("name") String name, // ¡CORREGIDO! Ahora Spring sabe que viene como Query Parameter
+            @PathVariable("id") Long id) {
+        
+        Optional<Customer> optionalCustomer = customerRepository.findById(String.valueOf(id)); // Eliminado .toString()
+        if (optionalCustomer.isPresent()) {
+            Customer existingCustomer = optionalCustomer.get();
+            existingCustomer.setName(name);
+            Customer updatedCustomer = customerRepository.save(existingCustomer);
+            return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
+    @Operation(summary = "Delete a customer")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Deleted the customer"),
+            @ApiResponse(responseCode = "404", description = "Customer not found"),
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Customer> deletecustomer(@PathVariable("id") Long id) {
-        Optional<Customer> optionalcustomer = prsRepository.findById(id.toString());
-        if (optionalcustomer.isPresent()) {
-            prsRepository.delete(optionalcustomer.get());
+    public ResponseEntity<Customer> deleteCustomer(@PathVariable("id") Long id) { // Corregido camelCase
+        Optional<Customer> optionalCustomer = customerRepository.findById(String.valueOf(id)); // Eliminado .toString()
+        if (optionalCustomer.isPresent()) {
+            customerRepository.delete(optionalCustomer.get());
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
     }  
-
 }
+
