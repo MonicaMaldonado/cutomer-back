@@ -57,8 +57,11 @@ jobs:
                 echo print the current directory show files
                 ls -la
                 echo preparing docker build context
-                cp .docker/Dockerfile /tmp/Dockerfile
+                # CORREGIDO: Apuntamos a la ubicación real dentro de la carpeta workflows
+                cp .github/workflows/.docker/Dockerfile /tmp/Dockerfile
+                # Copiamos el .jar descargado
                 cp /tmp/artifactjar/${{ github.event.client_payload.artifact_name }} /tmp/${{ github.event.client_payload.artifact_name }}
+                echo "Mostrando contenido de /tmp para confirmar copiado:"
                 ls -la /tmp 
 
             - name: Upload artifact
@@ -144,7 +147,6 @@ jobs:
                 tags: |
                   ${{ env.IMAGE_NAME }}:${{ github.sha }}
                   ${{ env.IMAGE_NAME }}:latest
-
 
     
 
