@@ -81,6 +81,7 @@ public class CustomerController {
         Customer newCustomer = customerRepository.save(customer);
         return new ResponseEntity<>(newCustomer, HttpStatus.CREATED);
     }
+    
 
     @Operation(summary = "Update a customer")
     @ApiResponses(value = {
