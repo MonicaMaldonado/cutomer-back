@@ -119,6 +119,13 @@ jobs:
             #####################################################
             - name: Display structure of downloaded files
               run: ls -R dockerBuildContext
+
+
+
+            # **. Convertimos el nombre del repositorio a minúsculas y lo guardamos en env.IMAGE_NAME
+            - name: Lowercase registry path
+              run: |
+                echo "IMAGE_NAME=$(echo ghcr.io/${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
             
             ######################################################## 
             # 6- Display structure
@@ -134,8 +141,8 @@ jobs:
                     DB_PASSWORD=${{ secrets.DB_PASSWORD }}
                 push: true
                 tags: |
-                 ghcr.io/${{ github.repository }}:${{ github.sha }} # The image ful name, include repository, user, image name and tag 
-                 ghcr.io/${{ github.repository }}:latest
+                 ${{ env.IMAGE_NAME }}:${{ github.sha }} # The image ful name, include repository, user, image name and tag 
+                 ${{ env.IMAGE_NAME }}:latest
     
 
 
