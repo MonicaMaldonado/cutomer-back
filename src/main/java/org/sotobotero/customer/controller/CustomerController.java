@@ -61,7 +61,7 @@ public class CustomerController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<Customer> getCustomerById(@PathVariable("id") Long id) { // Corregido camelCase
-        Optional<Customer> customer = customerRepository.findById(id); // Eliminado .toString() innecesario
+        Optional<Customer> customer = customerRepository.findById(id);
         if (customer.isPresent()) {
             return new ResponseEntity<>(customer.get(), HttpStatus.OK);
         } else {
@@ -87,7 +87,7 @@ public class CustomerController {
     })
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Customer> updateCustomer(@RequestBody Customer customer) { // Corregido camelCase
-        Optional<Customer> optionalCustomer = customerRepository.findById(customer.getId()); // Eliminado .toString()
+        Optional<Customer> optionalCustomer = customerRepository.findById(String.valueOf(customer.getId()));// Eliminado .toString()
         if (optionalCustomer.isPresent()) {
             Customer existingCustomer = optionalCustomer.get();
             
@@ -133,7 +133,7 @@ public class CustomerController {
             @RequestParam("name") String name, // ¡CORREGIDO! Ahora Spring sabe que viene como Query Parameter
             @PathVariable("id") Long id) {
         
-        Optional<Customer> optionalCustomer = customerRepository.findById(id); // Eliminado .toString()
+        Optional<Customer> optionalCustomer = customerRepository.findById(String.valueOf(id)); // Eliminado .toString()
         if (optionalCustomer.isPresent()) {
             Customer existingCustomer = optionalCustomer.get();
             existingCustomer.setName(name);
@@ -151,7 +151,7 @@ public class CustomerController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Customer> deleteCustomer(@PathVariable("id") Long id) { // Corregido camelCase
-        Optional<Customer> optionalCustomer = customerRepository.findById(id); // Eliminado .toString()
+        Optional<Customer> optionalCustomer = customerRepository.findById(String.valueOf(id)); // Eliminado .toString()
         if (optionalCustomer.isPresent()) {
             customerRepository.delete(optionalCustomer.get());
             return new ResponseEntity<>(HttpStatus.OK);
