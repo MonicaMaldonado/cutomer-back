@@ -60,14 +60,16 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Not found the customer"),
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable("id") Long id) { // Corregido camelCase
-        Optional<Customer> customer = customerRepository.findById(id);
-        if (customer.isPresent()) {
-            return new ResponseEntity<>(customer.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Customer> getCustomerById(@PathVariable("id") Long id) {
+    // Corregido: Convertimos el Long 'id' a String usando String.valueOf()
+    Optional<Customer> customer = customerRepository.findById(String.valueOf(id)); 
+    
+    if (customer.isPresent()) {
+        return new ResponseEntity<>(customer.get(), HttpStatus.OK);
+    } else {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+}
 
     @Operation(summary = "Create a customer")
     @ApiResponses(value = {
